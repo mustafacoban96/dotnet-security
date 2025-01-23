@@ -9,6 +9,6 @@ namespace auth_jwt_refresh_mechanism.Interfaces.IRepository
 {
     public interface ICustomerRepo
     {
-        Task<List<CustomerDto>> GetAll();
+        Task<List<Customermodal>> GetAll();
     }
 }
