@@ -25,6 +25,9 @@ namespace auth_jwt_refresh_mechanism.Controllers
              if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             var customers = await _customerRepo.GetAll();
+            if(customers == null){
+                return NotFound("Customers not found");
+            }
             return Ok(customers);
         }
     }
