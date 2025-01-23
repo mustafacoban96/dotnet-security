@@ -1,6 +1,8 @@
+using auth_jwt_refresh_mechanism.Helpers;
 using auth_jwt_refresh_mechanism.Interfaces;
 using auth_jwt_refresh_mechanism.Interfaces.IRepository;
 using auth_jwt_refresh_mechanism.Repository;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,9 +22,14 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>{
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+//auto mapper
+var automapper = new MapperConfiguration(item => item.AddProfile(new AutoMapperHandler()));
+IMapper mapper = automapper.CreateMapper();
+builder.Services.AddSingleton(mapper);
+
 ///
 // DI like Autowired Service-Interface-Controller
-builder.Services.AddScoped<ICustomerRepo,CustomerRepository>();
+builder.Services.AddTransient<ICustomerRepo,CustomerRepository>();
 //
 
 
