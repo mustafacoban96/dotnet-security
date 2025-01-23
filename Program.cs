@@ -1,28 +1,15 @@
 using auth_jwt_refresh_mechanism.Interfaces;
+using auth_jwt_refresh_mechanism.Interfaces.IRepository;
 using auth_jwt_refresh_mechanism.Repository;
-using auth_jwt_refresh_mechanism.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
-
-
 //for me
 builder.Services.AddControllers();
-
-builder.Services.AddControllers().AddNewtonsoftJson(options =>
-{
-    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-});
-//
-
-
-// DI like Autowired Service-Interface-Controller
-builder.Services.AddTransient<ICustomerService, CustomerService>();
-//
+builder.Services.AddOpenApi();
 
 
 //for me sql connect
@@ -34,6 +21,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>{
 });
 
 ///
+// DI like Autowired Service-Interface-Controller
+builder.Services.AddScoped<ICustomerRepo,CustomerRepository>();
+//
+
+
+
+
+//for me newJosn
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+{
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+});
+
+//
 
 
 
