@@ -3,6 +3,7 @@ using auth_jwt_refresh_mechanism.Interfaces;
 using auth_jwt_refresh_mechanism.Interfaces.IRepository;
 using auth_jwt_refresh_mechanism.Repository;
 using AutoMapper;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -28,10 +29,35 @@ var automapper = new MapperConfiguration(item => item.AddProfile(new AutoMapperH
 IMapper mapper = automapper.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
+/////
+builder.Services.AddCors(p => p.AddPolicy("corspolicy", build =>
+{
+    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+}));
+
+builder.Services.AddCors(p => p.AddPolicy("corspolicy1", build =>
+{
+    build.WithOrigins("https://localhost:5259").AllowAnyMethod().AllowAnyHeader();
+}));
+
+builder.Services.AddCors(p => p.AddDefaultPolicy(build =>
+{
+    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+}));
+
+
 ///
 // DI like Autowired Service-Interface-Controller
 builder.Services.AddTransient<ICustomerRepo,CustomerRepository>();
 //
+//
+builder.Services.AddRateLimiter(_ => _.AddFixedWindowLimiter(policyName: "fixedwindow", options =>
+{
+    options.Window = TimeSpan.FromSeconds(10);
+    options.PermitLimit = 1;
+    options.QueueLimit = 0;
+    options.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+}).RejectionStatusCode=401);
 
 //Logger config
 string logpath = builder.Configuration.GetSection("Logging:Logpath").Value;
@@ -65,6 +91,10 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+
+//for me
+app.UseCors();
+//
 app.UseHttpsRedirection();
 
 //for me 2
