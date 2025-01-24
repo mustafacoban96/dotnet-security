@@ -4,6 +4,7 @@ using auth_jwt_refresh_mechanism.Interfaces.IRepository;
 using auth_jwt_refresh_mechanism.Repository;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,16 @@ builder.Services.AddSingleton(mapper);
 builder.Services.AddTransient<ICustomerRepo,CustomerRepository>();
 //
 
+//Logger config
+string logpath = builder.Configuration.GetSection("Logging:Logpath").Value;
+var _logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("microsoft", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.File(logpath)
+    .CreateLogger();
+builder.Logging.AddSerilog(_logger);
+//
 
 
 
