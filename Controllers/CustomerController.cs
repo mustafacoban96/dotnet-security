@@ -6,11 +6,13 @@ using auth_jwt_refresh_mechanism.Dtos;
 using auth_jwt_refresh_mechanism.Helpers;
 using auth_jwt_refresh_mechanism.Interfaces;
 using auth_jwt_refresh_mechanism.Interfaces.IRepository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace auth_jwt_refresh_mechanism.Controllers
 {
+    [Authorize]
     //[DisableCors]
    // [EnableRateLimiting("fixedwindow")]
     [Route("/api/customer")]
