@@ -7,9 +7,12 @@ using auth_jwt_refresh_mechanism.Helpers;
 using auth_jwt_refresh_mechanism.Interfaces;
 using auth_jwt_refresh_mechanism.Interfaces.IRepository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace auth_jwt_refresh_mechanism.Controllers
 {
+    //[DisableCors]
+   // [EnableRateLimiting("fixedwindow")]
     [Route("/api/customer")]
     [ApiController]
     public class CustomerController : ControllerBase
@@ -22,6 +25,8 @@ namespace auth_jwt_refresh_mechanism.Controllers
         }
 
 
+          //[AllowAnonymous]
+       // [EnableCors("corspolicy1")]
         [HttpGet("GetAll")]
         public async Task<IActionResult> GetAll(){
              if (!ModelState.IsValid)
@@ -32,6 +37,8 @@ namespace auth_jwt_refresh_mechanism.Controllers
             }
             return Ok(customers);
         }
+
+        [DisableRateLimiting]
 
         [HttpGet("Getbycode")]
         public async Task<IActionResult> GetByCode(string code){
