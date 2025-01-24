@@ -23,14 +23,12 @@ namespace auth_jwt_refresh_mechanism.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly TokenService _tokenservice;
-        //private readonly IRefreshHandler _refresh;
+        private readonly IRefreshHandler _refresh;
 
-        public AuthorizeController(ApplicationDbContext context,IOptions<TokenService> options){
+        public AuthorizeController(ApplicationDbContext context,IOptions<TokenService> options,IRefreshHandler refresh){
             _context = context;
             _tokenservice = options.Value;
-            //_refresh = refresh;
-            
-
+            _refresh = refresh;
         }
 
         [HttpPost("GenerateToken")]
@@ -50,12 +48,12 @@ namespace auth_jwt_refresh_mechanism.Controllers
                 };
                 var token = tokenHandler.CreateToken(tokendesc);
                 var finalToken = tokenHandler.WriteToken(token);
-                return Ok(finalToken);
+                
                
-                // return Ok(new TokenResponse() {
-                //     Token = finalToken,
-                //     RefreshToken = await _refresh.GenerateToken(userCred.username),UserRole=user.Role
-                // });
+                return Ok(new TokenResponse() {
+                    Token = finalToken,
+                    RefreshToken = await _refresh.GenerateToken(userCred.username),UserRole=user.Role
+                });
                 
             }
             else{
@@ -64,62 +62,48 @@ namespace auth_jwt_refresh_mechanism.Controllers
             
         }
 
-        // [HttpPost("GenerateRefreshToken")]
-        // public async Task<IActionResult> GenerateToken([FromBody] TokenResponse token){
-        //     var _refreshtoken = await _context.TblRefreshtokens.FirstOrDefaultAsync(item => item.Refreshtoken == token.RefreshToken);
-        //     if (_refreshtoken != null){
-        //          var tokenhandler = new JwtSecurityTokenHandler();
-        //         var tokenkey = Encoding.UTF8.GetBytes(_tokenservice._key);
-        //         SecurityToken securityToken;
-        //         var principal = tokenhandler.ValidateToken(token.Token, new TokenValidationParameters()
-        //         {
-        //             ValidateIssuerSigningKey = true,
-        //             IssuerSigningKey = new SymmetricSecurityKey(tokenkey),
-        //             ValidateIssuer = false,
-        //             ValidateAudience = false,
+        [HttpPost("GenerateRefreshToken")]
+        public async Task<IActionResult> GenerateToken([FromBody] TokenResponse token){
+            var _refreshtoken = await _context.TblRefreshtokens.FirstOrDefaultAsync(item => item.Refreshtoken == token.RefreshToken);
+            if (_refreshtoken != null){
+                 var tokenhandler = new JwtSecurityTokenHandler();
+                var tokenkey = Encoding.UTF8.GetBytes(_tokenservice._key);
+                SecurityToken securityToken;
+                var principal = tokenhandler.ValidateToken(token.Token, new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(tokenkey),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
 
-        //         }, out securityToken);
+                }, out securityToken);
 
-        //         var _token = securityToken as JwtSecurityToken;
-        //         if(_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)){
-        //             string username = principal.Identity?.Name;
-        //             var _existdata = await _context.TblRefreshtokens.FirstOrDefaultAsync(item => item.Userid==username && item.Refreshtoken == token.RefreshToken);
-        //             if(_existdata != null){
-        //                 var _newtoken = new JwtSecurityToken(
-        //                     claims:principal.Claims.ToArray(),
-        //                     expires:DateTime.Now.AddSeconds(30),
-        //                     signingCredentials:new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenservice._key)),
-        //                     SecurityAlgorithms.HmacSha256)
-        //                 );
-        //                 var _finaltoken = tokenhandler.WriteToken(_newtoken);
-        //                 return Ok(new TokenResponse() { Token = _finaltoken, RefreshToken = await _refresh.GenerateToken(username),UserRole=token.UserRole });
-        //             }
-        //             else{
-        //                 return Unauthorized();
-        //             }
-        //         }
-        //         else{
-        //             return Unauthorized();
-        //         }
-
-        // //         //var tokendesc = new SecurityTokenDescriptor
-        // //         //{
-        // //         //    Subject = new ClaimsIdentity(new Claim[]
-        // //         //    {
-        // //         //        new Claim(ClaimTypes.Name,user.Code),
-        // //         //        new Claim(ClaimTypes.Role,user.Role)
-        // //         //    }),
-        // //         //    Expires = DateTime.UtcNow.AddSeconds(30),
-        // //         //    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(tokenkey), SecurityAlgorithms.HmacSha256)
-        // //         //};
-        // //         //var token = tokenhandler.CreateToken(tokendesc);
-        // //         //var finaltoken = tokenhandler.WriteToken(token);
-        // //         //return Ok(new TokenResponse() { Token = finaltoken, RefreshToken = await this.refresh.GenerateToken(userCred.username) });
-        //     }
-        //     else{
-        //         return Unauthorized();
-        //     }
-        // }
+                var _token = securityToken as JwtSecurityToken;
+                if(_token != null && _token.Header.Alg.Equals(SecurityAlgorithms.HmacSha256)){
+                    string username = principal.Identity?.Name;
+                    var _existdata = await _context.TblRefreshtokens.FirstOrDefaultAsync(item => item.Userid==username && item.Refreshtoken == token.RefreshToken);
+                    if(_existdata != null){
+                        var _newtoken = new JwtSecurityToken(
+                            claims:principal.Claims.ToArray(),
+                            expires:DateTime.Now.AddSeconds(30),
+                            signingCredentials:new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_tokenservice._key)),
+                            SecurityAlgorithms.HmacSha256)
+                        );
+                        var _finaltoken = tokenhandler.WriteToken(_newtoken);
+                        return Ok(new TokenResponse() { Token = _finaltoken, RefreshToken = await _refresh.GenerateToken(username),UserRole=token.UserRole });
+                    }
+                    else{
+                        return Unauthorized();
+                    }
+                }
+                else{
+                    return Unauthorized();
+                }
+            }
+            else{
+                return Unauthorized();
+            }
+        }
 
     }
 }
